@@ -73,7 +73,30 @@ def add_csv():
                 session.add(new_book)
                 session.commit()
 
-
+def edit_check(col_name, curr_value):
+    print(f'\n*** EDIT {col_name}***')
+    if col_name == 'Price':
+        print(f'\rCurrent Value: {curr_value / 100}')
+    elif col_name == 'Date':
+        print(f'\rCurrent Value: {curr_value.strftime("%B %d, %Y")}')
+    else:
+        print(f'\rCurrent Value: {curr_value}')
+    if col_name == 'Date' or col_name == 'Price':
+        while True:
+            changes = input(f'What would you like to change the value to?  ')
+            if col_name == 'Date':
+                new_date = clean_date(changes)
+                if type(new_date) == datetime.date:
+                    return new_date
+            elif col_name == 'Price':
+                new_price = clean_price(changes)
+                if type(new_price) == int:
+                    return new_price
+        
+    else:
+        return input(f'What would you like to change the value to?  ')
+    
+    
 def menu():
     while True:
         print('''
@@ -92,6 +115,20 @@ def menu():
                   \rSelect and option 1-5
                   \rPress enter to continue''')
             
+def submenu():
+    while True:
+        print('''
+            \r1) Edit
+            \r2) Delete
+            \r3) Return to Main Menu ''')
+        choice = input('What would you like to do? ')
+        if choice in ['1','2','3']:
+            return choice
+        else:
+            input('''
+                  \rPlease choose one of the options above
+                  \rSelect and option 1-3
+                  \rPress enter to continue''')
             
 def app():
     app_running = True
@@ -138,9 +175,29 @@ def app():
                     \r{the_book.title} by {the_book.author}
                     \rPublished: {the_book.published_date}
                     \rPrice: ${the_book.price / 100}''')
-            input("Press enter to return to main menu...")
+            sub_choice = submenu()
+            if sub_choice == '1':
+                the_book.title = edit_check('Title', the_book.title)
+                the_book.author = edit_check('Author', the_book.author )
+                the_book.published_date = edit_check('Date', the_book.published_date)
+                the_book.price = edit_check('Price', the_book.price )
+                session.commit()
+                print('Book Updated!')
+                time.sleep(1.5)
+            elif sub_choice == '2':
+                session.delete(the_book)
+                session.commit()
+                print('Book Deleted!')
+                time.sleep(1.5)
         elif choice == '4':
-            pass
+            oldest_book = session.query(Book).order_by(Book.published_date).first()
+            newest_book = session.query(Book).order_by(Book.published_date.desc( )).first()
+            total_books = session.query(Book).count()
+            print(f'''
+                  \rOldest Book: {oldest_book}
+                  \rNewest Book: {newest_book}
+                  \rTotal Books: {total_books}''')
+            input('Press Enter to return to the main menu...')
         else:
             print('goodbye')
             app_running = False
