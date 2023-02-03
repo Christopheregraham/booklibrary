@@ -38,6 +38,26 @@ def clean_price(price):
               \r****************''')
         return
     return new_price
+
+
+def clean_id(id, options):
+    try:
+        book_id = int(id)
+    except ValueError:
+        input('''
+              \r***ID Erorr***
+              \rThe ID format is invalid
+              \rShould be a number
+              \rExample: 1
+              \rPlease hit enter and try again
+              \r****************''')
+        return
+    if book_id in options:
+        return book_id
+    else:
+        print('ID does not exist.')
+        return
+    
     
 def add_csv():
     with open('suggested_books.csv') as csvfile:
@@ -60,7 +80,7 @@ def menu():
             \nProgramming Books
             \r1) Add Book
             \r2) View All Books
-            \r3) Search 
+            \r3) Search for Book by ID
             \r4) Book Analysis
             \r5) Exit''')
         choice = input('What would you like to do? ')
@@ -102,10 +122,24 @@ def app():
                 print(f'{book.id} | {book.title} | {book.author}')
             input("Press enter to return to main menu...")
         elif choice == '3':
-            pass
+            id_options = []
+            for book in session.query(Book):
+                id_options.append(book.id)
+            id_error = True
+            while id_error:
+                id_choice = input(f''' 
+                    \nID Options: {id_options}
+                    \rBook ID  ''')
+                id_clean = clean_id(id_choice, id_options)
+                if type(id_clean) == int:
+                    id_error = False
+            the_book = session.query(Book).filter(Book.id==id_choice).first()
+            print(f'''
+                    \r{the_book.title} by {the_book.author}
+                    \rPublished: {the_book.published_date}
+                    \rPrice: ${the_book.price / 100}''')
+            input("Press enter to return to main menu...")
         elif choice == '4':
-            pass
-        elif choice == '5':
             pass
         else:
             print('goodbye')
